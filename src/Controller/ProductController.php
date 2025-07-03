@@ -39,11 +39,13 @@ final class ProductController extends AbstractController
 
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()){
+        if ($form->isSubmitted() && $form->isValid()) {
 
             $manager->persist($product);
-            
+
             $manager->flush();
+
+            $this->addFlash('notice', 'Produktas buvo sekmingai pridetas');
 
             return $this->redirectToRoute('product_show', [
                 'id' => $product->getId()
@@ -52,6 +54,50 @@ final class ProductController extends AbstractController
         return $this->render(
             '/product/new.html.twig',
             ['form' => $form],
+        );
+    }
+
+    #[Route('/product/{id<\d+>}/edit', 'product_edit')]
+    public function edit(Product $product, Request $request, EntityManagerInterface $manager): Response
+    {
+        $form = $this->createForm(ProductForm::class, $product);
+
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+
+            $manager->flush();
+
+            $this->addFlash('notice', 'Produktas buvo sekmingai atnaujintas');
+
+            return $this->redirectToRoute('product_show', [
+                'id' => $product->getId()
+            ]);
+        }
+        return $this->render(
+            '/product/edit.html.twig',
+            ['form' => $form],
+        );
+    }
+    #[Route('/product/{id<\d+>}/delete', 'product_delete')]
+    public function delete(Product $product, Request $request, EntityManagerInterface $manager): Response
+    {
+
+        if ($request->isMethod('POST')) {
+
+            $manager->remove($product);
+
+            $manager->flush();
+
+            $this->addFlash('notice', "Produktas istrintas sekmingai!");
+
+            return $this->redirectToRoute('product_index');
+        }
+
+
+        return $this->render(
+            '/product/delete.html.twig',
+            ['id' => $product->getId()],
         );
     }
 }
